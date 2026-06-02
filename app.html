@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="HumaPet Social, uma rede pet front-end que conecta pets, pessoas, cuidados, adoção, serviços e comunidades.">
+  <meta name="author" content="Coded By CK">
+  <meta name="theme-color" content="#6C3BFF">
+  <title>HumaPet Social | Rede social pet</title>
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+  <a class="skip-link" href="#appMain">Pular para o conteúdo</a>
+
+  <header class="mobile-topbar">
+    <a class="brand" href="#" data-view-link="feed" aria-label="HumaPet Social - início">
+      <span class="brand-mark" aria-hidden="true"><i></i></span>
+      <span class="brand-copy"><strong>HumaPet</strong><small>Social</small></span>
+    </a>
+    <button class="icon-button" id="mobileSearchToggle" type="button" aria-label="Abrir busca">⌕</button>
+  </header>
+
+  <div class="app-layout">
+    <aside class="left-sidebar" aria-label="Menu principal">
+      <a class="brand desktop-brand" href="#" data-view-link="feed" aria-label="HumaPet Social - início">
+        <span class="brand-mark" aria-hidden="true"><i></i></span>
+        <span class="brand-copy"><strong>HumaPet</strong><small>Social</small></span>
+      </a>
+
+      <nav class="main-nav" aria-label="Telas do HumaPet Social">
+        <button class="nav-item is-active" type="button" data-view-link="feed"><span>⌂</span>Início</button>
+        <button class="nav-item" type="button" data-view-link="reels"><span>▻</span>Reels Pet</button>
+        <button class="nav-item" type="button" data-view-link="explore"><span>⌕</span>Explorar</button>
+        <button class="nav-item" type="button" data-view-link="communities"><span>◎</span>Comunidades</button>
+        <button class="nav-item" type="button" data-view-link="services"><span>◇</span>Serviços</button>
+        <button class="nav-item" type="button" data-view-link="care"><span>✓</span>Cuidados</button>
+        <button class="nav-item" type="button" data-view-link="profile"><span>♡</span>Perfil</button>
+      </nav>
+
+      <button class="primary-button create-shortcut" type="button" data-view-link="create">Criar post</button>
+
+      <section class="auth-panel" id="authPanel" aria-label="Conta HumaPet Social">
+        <span class="kicker">Conta</span>
+        <div id="authStatus">
+          <strong>Visitante</strong>
+          <small>Entre para publicar, curtir e salvar posts.</small>
+        </div>
+        <div class="auth-actions">
+          <button class="secondary-button" type="button" id="openLogin">Entrar</button>
+          <button class="primary-button" type="button" id="openSignup">Criar conta</button>
+          <button class="secondary-button" type="button" id="logoutButton" hidden>Sair</button>
+        </div>
+      </section>
+
+      <div class="sidebar-credit">
+        <strong>Coded By CK</strong>
+        <span>Cuidado, comunidade e tecnologia para o universo pet.</span>
+      </div>
+    </aside>
+
+    <main class="main-content" id="appMain">
+      <section class="search-panel" id="searchPanel" aria-label="Busca do app">
+        <label class="sr-only" for="searchInput">Buscar no HumaPet Social</label>
+        <input id="searchInput" type="search" placeholder="Buscar pets, tutores, dicas ou serviços">
+      </section>
+
+      <section class="app-view is-active" id="view-feed" data-view="feed" aria-labelledby="feedTitle">
+        <h1 class="sr-only" id="feedTitle">Feed principal do HumaPet Social</h1>
+        <div class="stories" id="storiesList" aria-label="Stories dos pets"></div>
+
+        <section class="quick-composer" aria-label="Criar publicação rápida">
+          <button class="quick-composer-main" type="button" data-view-link="create">
+            <span class="quick-composer-avatar" id="quickComposerAvatar" aria-hidden="true">MP</span>
+            <span>O que seu pet aprontou hoje?</span>
+          </button>
+          <div class="quick-composer-actions" aria-label="Atalhos de publicação">
+            <button type="button" data-quick-create="foto">Foto</button>
+            <button type="button" data-quick-create="vídeo curto">Vídeo</button>
+            <button type="button" data-quick-create="rotina">Rotina</button>
+            <button type="button" data-quick-create="adoção">Adoção</button>
+            <button type="button" data-quick-create="dica">Dica</button>
+          </div>
+        </section>
+
+        <div class="feed-filters" aria-label="Filtros do feed">
+          <button class="pill-filter is-active" type="button" data-filter="Todos">Todos</button>
+          <button class="pill-filter" type="button" data-filter="passeio">Passeios</button>
+          <button class="pill-filter" type="button" data-filter="saúde">Saúde</button>
+          <button class="pill-filter" type="button" data-filter="banho">Banho</button>
+          <button class="pill-filter" type="button" data-filter="rotina">Rotina</button>
+          <button class="pill-filter" type="button" data-filter="humor">Humor</button>
+        </div>
+
+        <div class="feed-list" id="feedList" aria-live="polite"></div>
+      </section>
+
+      <section class="app-view" id="view-reels" data-view="reels" aria-labelledby="reelsTitle">
+        <div class="page-heading compact">
+          <span class="kicker">Vídeos curtos</span>
+          <h1 id="reelsTitle">Reels Pet</h1>
+          <p>Cards verticais simulando vídeos rápidos, desafios e momentos feitos para viralizar.</p>
+        </div>
+        <div class="reels-track" id="reelsList"></div>
+      </section>
+
+      <section class="app-view" id="view-explore" data-view="explore" aria-labelledby="exploreTitle">
+        <div class="page-heading compact">
+          <span class="kicker">Descoberta</span>
+          <h1 id="exploreTitle">Cuidado, comunidade e tecnologia para o universo pet.</h1>
+          <p>Explore módulos, adoção, dicas, serviços e conteúdos que mostram como o HumaPet pode crescer além da rede social.</p>
+        </div>
+        <section class="ecosystem-panel" aria-labelledby="ecosystemTitle">
+          <div class="section-inline-heading">
+            <span class="kicker">Visão de ecossistema</span>
+            <h2 id="ecosystemTitle">HumaPet além do social</h2>
+          </div>
+          <div class="ecosystem-grid" id="ecosystemGrid"></div>
+        </section>
+        <section class="adoption-panel" aria-labelledby="adoptionTitle">
+          <div class="section-inline-heading">
+            <span class="kicker">Adoção responsável</span>
+            <h2 id="adoptionTitle">Pets procurando um lar</h2>
+          </div>
+          <div class="adoption-grid" id="adoptionGrid"></div>
+        </section>
+        <div class="explore-grid" id="exploreGrid"></div>
+      </section>
+
+      <section class="app-view" id="view-communities" data-view="communities" aria-labelledby="communitiesTitle">
+        <div class="page-heading compact">
+          <span class="kicker">Grupos e conexão</span>
+          <h1 id="communitiesTitle">Comunidades HumaPet</h1>
+          <p>Espaços para trocar experiências com outros tutores, por tema, fase de vida e interesse.</p>
+        </div>
+        <div class="community-grid" id="communitiesGrid"></div>
+      </section>
+
+      <section class="app-view" id="view-services" data-view="services" aria-labelledby="servicesTitle">
+        <div class="page-heading compact">
+          <span class="kicker">Diretório pet</span>
+          <h1 id="servicesTitle">Serviços pet próximos</h1>
+          <p>Um marketplace visual para descobrir soluções de cuidado, saúde, passeio e bem-estar.</p>
+        </div>
+        <div class="service-grid" id="servicesGrid"></div>
+      </section>
+
+      <section class="app-view" id="view-profile" data-view="profile" aria-labelledby="profileTitle">
+        <article class="pet-profile">
+          <div class="profile-hero">
+            <div class="pet-photo" aria-hidden="true">Mel</div>
+            <div>
+              <span class="kicker">Perfil do pet</span>
+              <h1 id="profileTitle">Mel</h1>
+              <p id="profileSubtitle">Golden Retriever · 3 anos · Tutor: Ana Clara</p>
+              <p class="profile-bio" id="profileBio">Carinhosa, brincalhona e apaixonada por passeios.</p>
+              <div class="profile-actions">
+                <button class="secondary-button" type="button" id="editProfileButton">Editar perfil</button>
+                <button class="secondary-button" type="button" id="shareProfile">Compartilhar</button>
+              </div>
+            </div>
+          </div>
+
+          <section class="profile-settings" id="profileSettings" aria-labelledby="profileSettingsTitle">
+            <div class="section-inline-heading">
+              <span class="kicker">Perfil local</span>
+              <h2 id="profileSettingsTitle">Configurações do tutor e pet</h2>
+            </div>
+            <form class="profile-form" id="profileForm">
+              <div class="form-grid">
+                <label>
+                  Nome do tutor
+                  <input id="profileTutorName" type="text" maxlength="40" required>
+                </label>
+                <label>
+                  @username
+                  <input id="profileUsername" type="text" maxlength="32" required>
+                </label>
+              </div>
+              <div class="form-grid">
+                <label>
+                  Nome do pet principal
+                  <input id="profilePetName" type="text" maxlength="32" required>
+                </label>
+                <label>
+                  Espécie
+                  <input id="profileSpecies" type="text" maxlength="32" required>
+                </label>
+              </div>
+              <div class="form-grid">
+                <label>
+                  Raça
+                  <input id="profileBreed" type="text" maxlength="40" required>
+                </label>
+                <label>
+                  Idade
+                  <input id="profileAge" type="text" maxlength="20" required>
+                </label>
+              </div>
+              <label>
+                Bio
+                <textarea id="profileBioInput" rows="3" maxlength="180"></textarea>
+              </label>
+              <div class="form-grid">
+                <label>
+                  Foto/avatar do pet
+                  <input id="profilePetAvatarFile" type="file" accept="image/*">
+                </label>
+                <label>
+                  Foto/avatar do tutor
+                  <input id="profileTutorAvatarFile" type="file" accept="image/*">
+                </label>
+              </div>
+              <div class="form-actions">
+                <button class="secondary-button danger-button" type="button" id="clearLocalData">Limpar dados locais</button>
+                <button class="primary-button" type="submit">Salvar perfil</button>
+              </div>
+            </form>
+          </section>
+
+          <div class="stats-row">
+            <div><strong>42</strong><span>Posts</span></div>
+            <div><strong>2.8k</strong><span>Seguidores</span></div>
+            <div><strong>318</strong><span>Seguindo</span></div>
+          </div>
+
+          <div class="health-grid">
+            <article><span>✓</span><strong>Vacinas em dia</strong><small>Última atualização: maio</small></article>
+            <article><span>⌁</span><strong>Próxima consulta</strong><small>12 de junho, 14:00</small></article>
+            <article><span>◌</span><strong>Atividade semanal</strong><small>85% da meta concluída</small></article>
+            <article><span>◆</span><strong>Peso</strong><small>28,4 kg estável</small></article>
+          </div>
+
+          <div class="gallery-grid" id="profileGallery"></div>
+
+          <section class="saved-posts-panel" aria-labelledby="savedPostsTitle">
+            <div class="section-inline-heading">
+              <span class="kicker">Coleção</span>
+              <h2 id="savedPostsTitle">Posts salvos</h2>
+            </div>
+            <div class="saved-posts-grid" id="savedPostsGrid"></div>
+          </section>
+        </article>
+      </section>
+
+      <section class="app-view" id="view-create" data-view="create" aria-labelledby="createTitle">
+        <div class="page-heading compact">
+          <span class="kicker">Criar publicação</span>
+          <h1 id="createTitle">O que seu pet aprontou hoje?</h1>
+          <p>Publique um post mockado no topo do feed para testar a experiência social.</p>
+        </div>
+
+        <form class="create-card" id="createPostForm">
+          <div class="form-grid">
+            <label>
+              Selecionar pet
+              <select id="createPet">
+                <option>Mel</option>
+                <option>Thor</option>
+                <option>Luna</option>
+                <option>Simba</option>
+                <option>Nina</option>
+              </select>
+            </label>
+            <label>
+              Tipo de post
+              <select id="createType">
+                <option value="foto">Foto</option>
+                <option value="vídeo curto">Vídeo curto</option>
+                <option value="texto">Texto</option>
+                <option value="passeio">Passeio</option>
+                <option value="saúde">Saúde</option>
+                <option value="banho">Banho</option>
+                <option value="humor">Humor</option>
+                <option value="rotina">Rotina</option>
+                <option value="dica">Dica</option>
+                <option value="adoção">Adoção</option>
+              </select>
+            </label>
+          </div>
+          <div class="form-grid">
+            <label>
+              Título visual
+              <input id="createVisualTitle" type="text" maxlength="48" placeholder="Ex: Passeio no parque" required>
+            </label>
+            <label>
+              Emoji/ícone do post
+              <input id="createVisualEmoji" type="text" maxlength="4" placeholder="🐶" required>
+            </label>
+          </div>
+          <label>
+            Legenda
+            <textarea id="createCaption" maxlength="220" rows="6" placeholder="O que seu pet aprontou hoje?" required></textarea>
+          </label>
+          <p class="media-warning" id="mediaWarning" role="status" aria-live="polite">Nesta fase, os posts usam card visual com categoria, título e emoji.</p>
+          <div class="create-preview" id="createPreview">
+            <span>♡</span>
+            <strong>Prévia do post</strong>
+          </div>
+          <div class="form-actions">
+            <button class="secondary-button" type="reset">Cancelar</button>
+            <button class="primary-button" type="submit">Publicar</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="app-view" id="view-care" data-view="care" aria-labelledby="careTitle">
+        <div class="page-heading compact">
+          <span class="kicker">Rotina e cuidados</span>
+          <h1 id="careTitle">HumaPet Care organiza a rotina e o bem-estar do seu pet.</h1>
+          <p>Vacinas, consultas, água, alimentação, passeio, higiene, medicamento, peso e humor em uma experiência simples e confiável.</p>
+        </div>
+        <div class="care-grid" id="careGrid"></div>
+
+        <section class="daily-checklist" aria-labelledby="dailyChecklistTitle">
+          <div>
+            <span class="kicker">Checklist diário</span>
+            <h2 id="dailyChecklistTitle">Cuidados de hoje</h2>
+          </div>
+          <div class="checklist" id="checklist"></div>
+        </section>
+      </section>
+    </main>
+
+    <aside class="right-sidebar" aria-label="Resumo e sugestões">
+      <section class="side-card brand-positioning-card">
+        <span class="kicker">Ecossistema HumaPet</span>
+        <h2>Pets, pessoas, cuidados e serviços em uma só rede.</h2>
+        <p>Compartilhe momentos, acompanhe rotina, descubra comunidades e encontre soluções pet.</p>
+      </section>
+
+      <section class="side-card">
+        <span class="kicker">Hoje</span>
+        <h2>Resumo da Mel</h2>
+        <div class="progress-card">
+          <strong>85%</strong>
+          <span>Meta de atividade</span>
+        </div>
+        <p>Próxima consulta: 12 de junho às 14:00.</p>
+      </section>
+
+      <section class="side-card">
+        <span class="kicker">Pets em destaque</span>
+        <div class="featured-pets" id="featuredPets"></div>
+      </section>
+
+      <section class="side-card">
+        <span class="kicker">Serviços próximos</span>
+        <div class="near-services" id="nearServices"></div>
+      </section>
+    </aside>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Menu inferior">
+    <button class="bottom-item is-active" type="button" data-view-link="feed"><span>⌂</span>Início</button>
+    <button class="bottom-item" type="button" data-view-link="reels"><span>▻</span>Reels</button>
+    <button class="bottom-item" type="button" data-view-link="explore"><span>⌕</span>Explorar</button>
+    <button class="bottom-item create-bottom" type="button" data-view-link="create"><span>＋</span>Criar</button>
+    <button class="bottom-item" type="button" data-view-link="profile"><span>♡</span>Perfil</button>
+  </nav>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="modal-backdrop" id="authModal" aria-hidden="true">
+    <article class="auth-modal-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+      <button class="modal-close" type="button" data-close-auth aria-label="Fechar autenticação">×</button>
+      <div class="auth-modal-heading">
+        <span class="kicker">HumaPet Social</span>
+        <h2 id="authModalTitle">Entre na rede pet</h2>
+        <p>Crie uma conta para publicar, comentar, salvar posts e sincronizar seu perfil pelo Firebase.</p>
+      </div>
+      <div class="auth-tabs" role="tablist" aria-label="Autenticação">
+        <button class="is-active" type="button" data-auth-mode="login">Entrar</button>
+        <button type="button" data-auth-mode="signup">Criar conta</button>
+      </div>
+
+      <form class="auth-form" id="loginForm">
+        <label>
+          Email
+          <input id="loginEmail" type="email" autocomplete="email" required>
+        </label>
+        <label>
+          Senha
+          <input id="loginPassword" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="primary-button" type="submit">Entrar</button>
+      </form>
+
+      <form class="auth-form is-hidden" id="signupForm">
+        <div class="form-grid">
+          <label>
+            Nome do tutor
+            <input id="signupTutorName" type="text" maxlength="40" autocomplete="name" required>
+          </label>
+          <label>
+            Username
+            <input id="signupUsername" type="text" maxlength="32" placeholder="@seunome.pet" required>
+          </label>
+        </div>
+        <div class="form-grid">
+          <label>
+            Email
+            <input id="signupEmail" type="email" autocomplete="email" required>
+          </label>
+          <label>
+            Senha
+            <input id="signupPassword" type="password" autocomplete="new-password" minlength="6" required>
+          </label>
+        </div>
+        <div class="form-grid">
+          <label>
+            Nome do pet principal
+            <input id="signupPetName" type="text" maxlength="32" required>
+          </label>
+          <label>
+            Espécie do pet
+            <input id="signupPetSpecies" type="text" maxlength="32" placeholder="Cachorro, gato..." required>
+          </label>
+        </div>
+        <div class="form-grid">
+          <label>
+            Raça
+            <input id="signupPetBreed" type="text" maxlength="40" required>
+          </label>
+          <label>
+            Idade
+            <input id="signupPetAge" type="text" maxlength="20" required>
+          </label>
+        </div>
+        <label>
+          Bio curta
+          <textarea id="signupBio" rows="3" maxlength="180" placeholder="Conte um pouco sobre você e seu pet."></textarea>
+        </label>
+        <button class="primary-button" type="submit">Criar conta</button>
+      </form>
+    </article>
+  </div>
+
+  <div class="modal-backdrop" id="postModal" aria-hidden="true">
+    <article class="post-modal-card" role="dialog" aria-modal="true" aria-labelledby="postModalTitle">
+      <button class="modal-close" type="button" data-close-modal aria-label="Fechar post">×</button>
+      <div class="modal-body" id="postModalBody"></div>
+    </article>
+  </div>
+
+  <div class="modal-backdrop story-modal" id="storyModal" aria-hidden="true">
+    <article class="story-modal-card" role="dialog" aria-modal="true" aria-labelledby="storyModalTitle">
+      <div class="story-progress"><span id="storyProgressBar"></span></div>
+      <button class="modal-close" type="button" data-close-story aria-label="Fechar story">×</button>
+      <div class="story-modal-body" id="storyModalBody"></div>
+    </article>
+  </div>
+
+  <div class="modal-backdrop story-create-modal" id="storyCreateModal" aria-hidden="true">
+    <article class="story-create-card" role="dialog" aria-modal="true" aria-labelledby="storyCreateTitle">
+      <button class="modal-close" type="button" data-close-story-create aria-label="Fechar criação de story">×</button>
+      <form id="storyForm" class="story-form">
+        <span class="kicker">Novo story</span>
+        <h2 id="storyCreateTitle">Criar story local</h2>
+        <label>
+          Título
+          <input id="storyTitleInput" type="text" maxlength="48" placeholder="Ex: Passeio da manhã" required>
+        </label>
+        <label>
+          Texto curto
+          <textarea id="storyTextInput" rows="3" maxlength="120" placeholder="Conte o momento em poucas palavras." required></textarea>
+        </label>
+        <label>
+          Imagem ou vídeo curto
+          <input id="storyMediaFile" type="file" accept="image/*,video/*">
+        </label>
+        <div class="story-upload-preview" id="storyUploadPreview">
+          <span>+</span>
+          <strong>Prévia do story</strong>
+        </div>
+        <div class="form-actions">
+          <button class="secondary-button" type="reset">Cancelar</button>
+          <button class="primary-button" type="submit">Publicar story</button>
+        </div>
+      </form>
+    </article>
+  </div>
+
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
