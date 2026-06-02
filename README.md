@@ -109,10 +109,18 @@ Essas regras são uma base de desenvolvimento e precisam ser revisadas antes de 
 ## Como rodar
 
 1. Abra a pasta no VS Code.
-2. Abra `app.html` com Live Server.
-3. Teste Entrar, Criar conta e Sair.
-4. Depois de logado, teste criar post, curtir, comentar e salvar.
-5. Abra a tela Perfil, clique em **Editar perfil**, salve alterações e confira os dados em `users/{uid}` no Firestore.
+2. Abra `index.html` com Live Server para ver a landing page/apresentação do HumaPet.
+3. Clique no botão **Entrar no HumaPet Social** para acessar o app funcional em `app.html`.
+4. Também é possível abrir `app.html` diretamente pelo Live Server.
+5. No app, teste Entrar, Criar conta e Sair.
+6. Depois de logado, teste criar post, curtir, comentar e salvar.
+7. Abra a tela Perfil, clique em **Editar perfil**, salve alterações e confira os dados em `users/{uid}` no Firestore.
+
+## Estrutura de páginas
+
+- `index.html`: landing page/apresentação do HumaPet.
+- `app.html`: app HumaPet Social funcional com Firebase Auth, Firestore, feed, perfil, posts, curtidas e comentários.
+- O acesso principal ao app pela landing é feito pelo botão **Entrar no HumaPet Social**.
 
 ## Limitações atuais
 

@@ -8,6 +8,9 @@
   --color-white: #ffffff;
   --color-cta: #ff7a2f;
   --color-cta-dark: #de5d17;
+  --color-social: #6c3bff;
+  --color-social-2: #e84393;
+  --color-social-soft: #f3ecff;
   --color-text: #17211f;
   --color-muted: #5f6f6a;
   --color-line: rgba(23, 33, 31, 0.1);
@@ -169,6 +172,17 @@ p {
 
 .btn-primary:hover {
   background: linear-gradient(135deg, var(--color-cta-dark), var(--color-cta));
+}
+
+.btn-social {
+  background: linear-gradient(135deg, var(--color-social), var(--color-social-2));
+  color: var(--color-white);
+  box-shadow: 0 16px 34px rgba(108, 59, 255, 0.28);
+}
+
+.btn-social:hover {
+  background: linear-gradient(135deg, #5a2fe0, var(--color-social-2));
+  box-shadow: 0 20px 44px rgba(232, 67, 147, 0.24);
 }
 
 .btn-secondary {
@@ -752,6 +766,37 @@ p {
   font-weight: 750;
 }
 
+.social-entry {
+  padding-block: clamp(3rem, 6vw, 5rem);
+}
+
+.social-entry-card {
+  display: grid;
+  gap: 1.5rem;
+  align-items: center;
+  padding: clamp(1.35rem, 4vw, 2.4rem);
+  border: 1px solid rgba(108, 59, 255, 0.12);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 88% 18%, rgba(232, 67, 147, 0.15), transparent 14rem),
+    radial-gradient(circle at 8% 90%, rgba(111, 207, 151, 0.16), transparent 14rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(243, 236, 255, 0.82));
+  box-shadow: var(--shadow-soft);
+}
+
+.social-entry-copy {
+  max-width: 760px;
+}
+
+.social-entry-copy h2 {
+  color: #2d174d;
+}
+
+.social-entry-copy p {
+  margin-bottom: 0;
+  font-size: 1.04rem;
+}
+
 .steps {
   display: grid;
   gap: 1rem;
@@ -1020,6 +1065,10 @@ p {
   }
 
   .cta-panel {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .social-entry-card {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 }
