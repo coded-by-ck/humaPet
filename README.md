@@ -119,3 +119,4 @@ Essas regras são uma base de desenvolvimento e precisam ser revisadas antes de 
 ## Crédito
 
 © 2026 Coded By CK. Todos os direitos reservados.
+# humaPet
