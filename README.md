@@ -34,9 +34,15 @@ Upload real de imagem/vídeo fica preparado como etapa futura.
 - Cadastro com email e senha
 - Login e logout
 - Documento de perfil em `users/{uid}`
-- Perfil do tutor e pet salvo no Firestore
+- Perfil real do tutor e pet salvo no Firestore
+- Edição de perfil com nome do tutor, username, pet, espécie, raça, idade, bio e avatar visual simples
+- Tela Perfil com dados reais do usuário logado
+- Estatísticas básicas no perfil: posts criados, curtidas recebidas e posts salvos
+- Grid/lista com posts criados pelo usuário logado
 - Feed em tempo real com `onSnapshot`
 - Criação de posts reais no Firestore
+- Edição de posts próprios
+- Exclusão de posts próprios
 - Curtidas por usuário em `posts/{postId}/likes/{uid}`
 - Comentários em `posts/{postId}/comments`
 - Posts salvos em `users/{uid}/savedPosts/{postId}`
@@ -106,6 +112,7 @@ Essas regras são uma base de desenvolvimento e precisam ser revisadas antes de 
 2. Abra `app.html` com Live Server.
 3. Teste Entrar, Criar conta e Sair.
 4. Depois de logado, teste criar post, curtir, comentar e salvar.
+5. Abra a tela Perfil, clique em **Editar perfil**, salve alterações e confira os dados em `users/{uid}` no Firestore.
 
 ## Limitações atuais
 
@@ -115,8 +122,8 @@ Essas regras são uma base de desenvolvimento e precisam ser revisadas antes de 
 - Sem login social
 - Sem seguidores, chat, notificações e moderação real
 - Reels, stories, adoção e serviços ainda são simulações de interface
+- A exclusão tenta remover `likes` e `comments` do post no front-end, mas uma limpeza completa e garantida de subcoleções deve ser feita futuramente com backend ou Cloud Functions
 
 ## Crédito
 
 © 2026 Coded By CK. Todos os direitos reservados.
-# humaPet

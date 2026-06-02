@@ -33,6 +33,8 @@ const defaultState = {
   activeFilter: "Todos",
   searchTerm: "",
   activePostId: null,
+  activeOptionsPostId: null,
+  editingPostId: null,
   activeStoryId: null,
   userProfile: {
     tutorName: "Ana Clara",
@@ -461,16 +463,18 @@ function requireAuth() {
 }
 
 function profileFromUserDoc(data = {}) {
+  const tutorName = data.tutorName || "Ana Clara";
+  const petName = data.mainPetName || data.petName || "Mel";
   return {
-    tutorName: data.tutorName || "Ana Clara",
+    tutorName,
     username: data.username || "@anaclara.pet",
-    petName: data.mainPetName || data.petName || "Mel",
+    petName,
     species: data.petSpecies || data.species || "Cachorro",
     breed: data.petBreed || data.breed || "Golden Retriever",
     age: data.petAge || data.age || "3 anos",
     bio: data.bio || "Carinhosa, brincalhona e apaixonada por passeios.",
-    petAvatar: data.avatarUrl || (data.mainPetName || "Mel").slice(0, 2),
-    tutorAvatar: (data.tutorName || "Ana Clara").slice(0, 2),
+    petAvatar: data.petAvatar || data.avatarUrl || petName.slice(0, 2).toUpperCase(),
+    tutorAvatar: data.tutorAvatar || tutorName.slice(0, 2).toUpperCase(),
     petAvatarMediaId: null,
     tutorAvatarMediaId: null,
   };
@@ -478,6 +482,35 @@ function profileFromUserDoc(data = {}) {
 
 function getActiveProfile() {
   return currentUserProfile || loadUserProfile();
+}
+
+function normalizeUsername(value) {
+  const username = value.trim();
+  if (!username) return "";
+  return username.startsWith("@") ? username : `@${username}`;
+}
+
+function fallbackText(value, fallback) {
+  return value?.trim?.() || fallback;
+}
+
+function getProfilePosts(profile = getActiveProfile()) {
+  if (currentUser) return state.posts.filter((post) => post.uid === currentUser.uid);
+  return state.posts.filter((post) => post.isLocal || post.petName === profile.petName);
+}
+
+function getSavedPostsCount() {
+  if (currentUser) return savedPostIds.size;
+  return state.posts.filter((post) => post.saved).length;
+}
+
+function applyProfileLocally(profilePayload) {
+  currentUserProfile = profileFromUserDoc(profilePayload);
+  state.userProfile = currentUserProfile;
+  saveUserProfile();
+  renderAuthState();
+  renderProfile();
+  updateCreatePetOptions();
 }
 
 function formatFirebaseDate(value) {
@@ -701,6 +734,8 @@ async function bootstrapFirebaseAuth() {
 
 const getPost = (id) => state.posts.find((post) => String(post.id) === String(id));
 
+const isOwnPost = (post) => Boolean((currentUser && post?.uid && post.uid === currentUser.uid) || (!isFirebaseMode() && post?.isLocal));
+
 const filteredPosts = () => state.posts.filter((post) => {
   const filter = state.activeFilter === "Todos" || post.category === state.activeFilter || post.category === state.activeFilter.toLowerCase();
   const haystack = `${post.petName} ${post.tutorName} ${post.caption} ${post.category} ${post.visualTitle}`.toLowerCase();
@@ -734,6 +769,7 @@ const visualMarkup = (post, button = false) => {
       <span class="visual-icon" aria-hidden="true">${escapeHTML(post.visualEmoji || categoryIcons[post.category] || post.avatar)}</span>
       <span class="visual-glow" aria-hidden="true"></span>
       <strong>${escapeHTML(post.visualTitle || post.petName)}</strong>
+      <p class="visual-caption">${escapeHTML(post.caption || "Novo momento no HumaPet Social.")}</p>
       <small>${escapeHTML(post.category)}</small>
     </div>
   `;
@@ -761,7 +797,7 @@ function renderStories() {
   hydrateMedia($("#storiesList"));
 }
 
-function renderPosts() {
+function renderPostsLegacy() {
   const posts = filteredPosts();
   const feed = $("#feedList");
 
@@ -815,6 +851,79 @@ function renderPosts() {
       </form>
     </article>
   `).join("");
+  hydrateMedia(feed);
+}
+
+function renderPosts() {
+  const posts = filteredPosts();
+  const feed = $("#feedList");
+
+  if (!posts.length) {
+    feed.innerHTML = `
+      <article class="empty-state">
+        <h2>Nenhum post encontrado</h2>
+        <p>Tente outro filtro, busque outro termo ou crie uma nova publicação.</p>
+      </article>
+    `;
+    return;
+  }
+
+  feed.innerHTML = posts.map((post) => {
+    const ownPost = isOwnPost(post);
+    const optionsOpen = String(state.activeOptionsPostId) === String(post.id);
+
+    return `
+      <article class="post-card" data-post-id="${post.id}">
+        <header class="post-header">
+          <div class="post-avatar circle-avatar" aria-hidden="true">${escapeHTML(post.avatar)}</div>
+          <div class="post-meta">
+            <div class="post-identity">
+              <h3>${escapeHTML(post.petName)}</h3>
+              <p><span>${escapeHTML(post.tutorName)}</span> · ${escapeHTML(post.createdAt)}</p>
+            </div>
+            <div class="post-options-wrap">
+              <button class="more-button" type="button" data-action="options" aria-haspopup="menu" aria-expanded="${optionsOpen}" aria-label="Mais opções do post">...</button>
+              <div class="post-options-menu ${optionsOpen ? "is-open" : ""}" role="menu">
+                ${ownPost ? `
+                  <button type="button" role="menuitem" data-action="edit-post">Editar post</button>
+                  <button class="danger-option" type="button" role="menuitem" data-action="delete-post">Excluir post</button>
+                ` : `
+                  <button type="button" role="menuitem" data-action="report-post">Denunciar post</button>
+                  <button type="button" role="menuitem" data-action="share">Copiar link</button>
+                `}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        ${visualMarkup(post, true)}
+
+        <p class="post-caption">${escapeHTML(post.caption)}</p>
+
+        <div class="post-stats">
+          <strong>${post.likes} curtidas</strong>
+          <button type="button" data-action="open-post" class="comments-link">${post.commentsCount || post.comments.length} comentários · Ver comentários</button>
+        </div>
+
+        <footer class="post-actions">
+          <button class="post-action ${post.liked ? "is-active is-liked" : ""}" type="button" data-action="like" aria-label="Curtir post de ${escapeHTML(post.petName)}"><span>♡</span>Curtir</button>
+          <button class="post-action" type="button" data-action="comment" aria-label="Comentar post de ${escapeHTML(post.petName)}"><span>⌕</span>Comentar</button>
+          <button class="post-action" type="button" data-action="share" aria-label="Compartilhar post de ${escapeHTML(post.petName)}"><span>↗</span>Compartilhar</button>
+          <button class="post-action ${post.saved ? "is-active is-saved" : ""}" type="button" data-action="save" aria-label="Salvar post de ${escapeHTML(post.petName)}"><span>◇</span>${post.saved ? "Salvo" : "Salvar"}</button>
+        </footer>
+
+        <div class="comments">
+          ${post.comments.slice(0, 2).map((comment) => `<div class="comment"><strong>${escapeHTML(comment.user)}</strong> ${escapeHTML(comment.text)}</div>`).join("")}
+        </div>
+
+        <form class="quick-comment is-open" data-comment-form>
+          <label class="sr-only">Adicione um comentário</label>
+          <input type="text" maxlength="120" placeholder="Adicione um comentário...">
+          <button type="submit">Publicar</button>
+        </form>
+      </article>
+    `;
+  }).join("");
   hydrateMedia(feed);
 }
 
@@ -894,11 +1003,13 @@ const renderServices = () => {
 
 function renderProfile() {
   const profile = getActiveProfile();
-  const profilePosts = state.posts.filter((post) => post.isLocal || post.uid === currentUser?.uid || post.petName === profile.petName);
-  const totalLikes = profilePosts.reduce((sum, post) => sum + post.likes, 0);
+  const profilePosts = getProfilePosts(profile);
+  const totalLikes = profilePosts.reduce((sum, post) => sum + (Number(post.likes) || 0), 0);
+  const savedCount = getSavedPostsCount();
   $("#profileTitle").textContent = profile.petName;
-  $("#profileSubtitle").textContent = `${profile.species} · ${profile.breed} · ${profile.age} · Tutor: ${profile.tutorName}`;
-  $("#profileBio").textContent = profile.bio;
+  $("#profileOwner").textContent = `Tutor: ${profile.tutorName} · ${profile.username}`;
+  $("#profileSubtitle").textContent = `${profile.species} · ${profile.breed} · ${profile.age}`;
+  $("#profileBio").textContent = profile.bio || "Perfil HumaPet em construção.";
   const petPhoto = $(".pet-photo");
   petPhoto.textContent = profile.petAvatar || profile.petName.slice(0, 2);
   petPhoto.innerHTML = profile.petAvatarMediaId
@@ -915,17 +1026,16 @@ function renderProfile() {
   if (stats) {
     stats.innerHTML = `
       <div><strong>${profilePosts.length}</strong><span>Posts</span></div>
-      <div><strong>2.8k</strong><span>Seguidores</span></div>
-      <div><strong>318</strong><span>Seguindo</span></div>
       <div><strong>${totalLikes}</strong><span>Curtidas</span></div>
+      <div><strong>${savedCount}</strong><span>Salvos</span></div>
     `;
   }
 
-  $("#profileGallery").innerHTML = (profilePosts.length ? profilePosts : state.posts.slice(0, 6)).map((post) => `
+  $("#profileGallery").innerHTML = profilePosts.length ? profilePosts.map((post) => `
     <button class="gallery-card" type="button" data-post-id="${post.id}" data-action="open-post" data-tone="${escapeHTML(post.category)}">
       ${post.mediaUrl ? renderRemoteMedia(post.mediaUrl, post.mediaType, `Post de ${post.petName}`) : post.mediaId ? renderMediaElement(post.mediaId, post.mediaType, `Post de ${post.petName}`) : `<span class="visual-icon" aria-hidden="true">${escapeHTML(post.visualEmoji || post.avatar)}</span><strong>${escapeHTML(post.visualTitle || post.petName)}</strong>`}
     </button>
-  `).join("");
+  `).join("") : `<article class="empty-state compact-empty">Os posts criados por este perfil aparecerão aqui.</article>`;
 
   renderSavedPosts();
   hydrateMedia($("#profileGallery"));
@@ -944,6 +1054,58 @@ function fillProfileForm() {
   $("#profileBreed").value = profile.breed;
   $("#profileAge").value = profile.age;
   $("#profileBioInput").value = profile.bio;
+}
+
+function fillEditProfileForm() {
+  const profile = getActiveProfile();
+  $("#editTutorName").value = profile.tutorName;
+  $("#editUsername").value = profile.username;
+  $("#editPetName").value = profile.petName;
+  $("#editPetAvatar").value = profile.petAvatar || profile.petName.slice(0, 2).toUpperCase();
+  $("#editPetSpecies").value = profile.species;
+  $("#editPetBreed").value = profile.breed;
+  $("#editPetAge").value = profile.age;
+  $("#editBio").value = profile.bio;
+}
+
+function openEditProfileModal() {
+  if (isFirebaseMode() && !requireAuth()) return;
+  fillEditProfileForm();
+  const modal = $("#editProfileModal");
+  modal.classList.add("is-open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  window.setTimeout(() => $("#editTutorName")?.focus(), 80);
+}
+
+function closeEditProfileModal() {
+  const modal = $("#editProfileModal");
+  if (!modal) return;
+  modal.classList.remove("is-open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+}
+
+function getEditProfilePayload() {
+  const tutorName = fallbackText($("#editTutorName").value, "Tutor HumaPet");
+  const username = normalizeUsername($("#editUsername").value);
+  if (!username) {
+    $("#editUsername").focus();
+    showToast("Informe um username para continuar.");
+    return null;
+  }
+
+  const petName = fallbackText($("#editPetName").value, "Pet HumaPet");
+  return {
+    tutorName,
+    username,
+    mainPetName: petName,
+    petSpecies: fallbackText($("#editPetSpecies").value, "Espécie não informada"),
+    petBreed: fallbackText($("#editPetBreed").value, "Raça não informada"),
+    petAge: fallbackText($("#editPetAge").value, "Idade não informada"),
+    bio: fallbackText($("#editBio").value.slice(0, 160), "Cuidado, comunidade e tecnologia para o universo pet."),
+    petAvatar: fallbackText($("#editPetAvatar").value, petName.slice(0, 2).toUpperCase()),
+  };
 }
 
 function updateCreatePetOptions() {
@@ -1346,6 +1508,81 @@ function resetCreatePreview() {
   $("#mediaWarning").textContent = "Nesta fase, os posts usam card visual com categoria, título e emoji.";
 }
 
+function ensureSelectOption(select, value) {
+  if (!value || [...select.options].some((option) => option.value === value)) return;
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = value;
+  select.append(option);
+}
+
+function openEditPostModal(id) {
+  const post = getPost(id);
+  if (!post) return;
+  if (!isOwnPost(post)) {
+    showToast("Você só pode alterar suas próprias publicações.");
+    return;
+  }
+
+  state.editingPostId = post.id;
+  ensureSelectOption($("#editPostCategory"), post.category);
+  $("#editPostCaption").value = post.caption || "";
+  $("#editPostCategory").value = post.category || "texto";
+  $("#editPostVisualTitle").value = post.visualTitle || "";
+  $("#editPostEmoji").value = post.visualEmoji || categoryIcons[post.category] || "🐾";
+  $("#editPostModal").classList.add("is-open");
+  $("#editPostModal").setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  window.setTimeout(() => $("#editPostCaption")?.focus(), 80);
+}
+
+function closeEditPostModal() {
+  const modal = $("#editPostModal");
+  if (!modal) return;
+  state.editingPostId = null;
+  modal.classList.remove("is-open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+}
+
+async function deletePostSubcollection(postId, name) {
+  const snapshot = await getDocs(collection(db, "posts", String(postId), name));
+  await Promise.all(snapshot.docs.map((item) => deleteDoc(item.ref)));
+}
+
+async function handleDeletePost(id) {
+  const post = getPost(id);
+  if (!post) return;
+  if (!isOwnPost(post)) {
+    showToast("Você só pode alterar suas próprias publicações.");
+    return;
+  }
+  if (!window.confirm("Tem certeza que deseja excluir este post?")) return;
+
+  try {
+    if (isFirebaseMode()) {
+      if (!requireAuth()) return;
+      try {
+        await Promise.all([
+          deletePostSubcollection(post.id, "likes"),
+          deletePostSubcollection(post.id, "comments"),
+        ]);
+      } catch (error) {
+        console.warn("HumaPet Social: não foi possível limpar todas as subcoleções do post pelo front-end.", error);
+      }
+      await deleteDoc(doc(db, "posts", String(post.id)));
+    } else {
+      state.posts = state.posts.filter((item) => String(item.id) !== String(post.id));
+      savePosts();
+      renderAll();
+    }
+    state.activeOptionsPostId = null;
+    showToast("Post excluído com sucesso!");
+  } catch (error) {
+    showToast(authMessage(error));
+  }
+}
+
 document.addEventListener("click", async (event) => {
   const viewLink = event.target.closest("[data-view-link]");
   if (viewLink) {
@@ -1414,6 +1651,27 @@ document.addEventListener("click", async (event) => {
   if (postCard && actionButton) {
     const id = postCard.dataset.postId;
     const action = actionButton.dataset.action;
+    if (action === "options") {
+      state.activeOptionsPostId = String(state.activeOptionsPostId) === String(id) ? null : id;
+      renderPosts();
+      return;
+    }
+    if (action === "edit-post") {
+      state.activeOptionsPostId = null;
+      renderPosts();
+      openEditPostModal(id);
+      return;
+    }
+    if (action === "delete-post") {
+      await handleDeletePost(id);
+      return;
+    }
+    if (action === "report-post") {
+      state.activeOptionsPostId = null;
+      renderPosts();
+      showToast("Denúncia registrada em modo protótipo.");
+      return;
+    }
     if (action === "open-post" && event.target.closest("video.local-media")) return;
     if (action === "like") await handleLikePost(id);
     if (action === "save") await handleSavePost(id);
@@ -1421,6 +1679,11 @@ document.addEventListener("click", async (event) => {
     if (action === "comment") postCard.querySelector("[data-comment-form] input").focus();
     if (action === "open-post") renderPostModal(id);
     return;
+  }
+
+  if (state.activeOptionsPostId && !event.target.closest(".post-options-wrap")) {
+    state.activeOptionsPostId = null;
+    renderPosts();
   }
 
   const joinButton = event.target.closest("[data-join]");
@@ -1435,10 +1698,14 @@ document.addEventListener("click", async (event) => {
   if (event.target.closest(".detail-button")) showToast("Detalhes do serviço em modo mockado.");
   if (event.target.closest("[data-close-auth]")) closeAuthModal();
   if (event.target.closest("[data-close-modal]")) closePostModal();
+  if (event.target.closest("[data-close-profile-edit]")) closeEditProfileModal();
+  if (event.target.closest("[data-close-edit-post]")) closeEditPostModal();
   if (event.target.closest("[data-close-story]")) closeStoryModal();
   if (event.target.closest("[data-close-story-create]")) closeStoryCreateModal();
   if (event.target === $("#authModal")) closeAuthModal();
   if (event.target === $("#postModal")) closePostModal();
+  if (event.target === $("#editProfileModal")) closeEditProfileModal();
+  if (event.target === $("#editPostModal")) closeEditPostModal();
   if (event.target === $("#storyModal")) closeStoryModal();
   if (event.target === $("#storyCreateModal")) closeStoryCreateModal();
 
@@ -1529,6 +1796,54 @@ $("#postModal")?.addEventListener("submit", async (event) => {
   input.value = "";
 });
 
+$("#editPostForm")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const post = getPost(state.editingPostId);
+  if (!post) return;
+  if (!isOwnPost(post)) {
+    showToast("Você só pode alterar suas próprias publicações.");
+    return;
+  }
+
+  const payload = {
+    caption: $("#editPostCaption").value.trim(),
+    category: $("#editPostCategory").value,
+    visualTitle: $("#editPostVisualTitle").value.trim(),
+    visualEmoji: $("#editPostEmoji").value.trim() || categoryIcons[$("#editPostCategory").value] || "🐾",
+  };
+
+  if (!payload.caption || !payload.visualTitle) {
+    showToast("Preencha legenda e título visual.");
+    return;
+  }
+
+  const saveButton = $("#savePostEditButton");
+  const originalText = saveButton.textContent;
+  saveButton.disabled = true;
+  saveButton.textContent = "Salvando...";
+
+  try {
+    if (isFirebaseMode()) {
+      if (!requireAuth()) return;
+      await updateDoc(doc(db, "posts", String(post.id)), {
+        ...payload,
+        updatedAt: serverTimestamp(),
+      });
+    } else {
+      Object.assign(post, payload);
+      savePosts();
+      renderAll();
+    }
+    closeEditPostModal();
+    showToast("Post atualizado com sucesso!");
+  } catch (error) {
+    showToast(authMessage(error));
+  } finally {
+    saveButton.disabled = false;
+    saveButton.textContent = originalText;
+  }
+});
+
 $("#createPostForm")?.addEventListener("submit", handleCreatePost);
 $("#createPostForm")?.addEventListener("reset", () => window.setTimeout(resetCreatePreview, 0));
 
@@ -1599,11 +1914,41 @@ $("#profileForm")?.addEventListener("submit", async (event) => {
 });
 
 $("#editProfileButton")?.addEventListener("click", () => {
-  $("#profileSettings").scrollIntoView({ behavior: "smooth", block: "start" });
-  $("#profileTutorName").focus();
+  openEditProfileModal();
 });
 
-$("#clearLocalData")?.addEventListener("click", async () => {
+$("#editProfileForm")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const payload = getEditProfilePayload();
+  if (!payload) return;
+
+  const saveButton = $("#saveProfileButton");
+  const originalText = saveButton.textContent;
+  saveButton.disabled = true;
+  saveButton.textContent = "Salvando...";
+
+  try {
+    if (isFirebaseMode()) {
+      if (!requireAuth()) return;
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        ...payload,
+        updatedAt: serverTimestamp(),
+      });
+      applyProfileLocally(payload);
+    } else {
+      applyProfileLocally(payload);
+    }
+    closeEditProfileModal();
+    showToast("Perfil atualizado com sucesso!");
+  } catch (error) {
+    showToast(authMessage(error));
+  } finally {
+    saveButton.disabled = false;
+    saveButton.textContent = originalText;
+  }
+});
+
+async function handleClearLocalData() {
   if (!window.confirm("Limpar dados locais e restaurar o protótipo inicial?")) return;
   localStorage.removeItem(STORAGE_KEY);
   await clearMedia();
@@ -1611,7 +1956,10 @@ $("#clearLocalData")?.addEventListener("click", async () => {
   renderAll();
   setActiveView("feed");
   showToast("Dados locais limpos.");
-});
+}
+
+$("#clearLocalData")?.addEventListener("click", handleClearLocalData);
+$("#clearLocalDataTop")?.addEventListener("click", handleClearLocalData);
 
 $("#storyMediaFile")?.addEventListener("change", (event) => {
   const file = event.target.files[0];
@@ -1684,6 +2032,8 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     closeAuthModal();
     closePostModal();
+    closeEditProfileModal();
+    closeEditPostModal();
     closeStoryModal();
     closeStoryCreateModal();
   }

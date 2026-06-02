@@ -151,11 +151,13 @@
             <div>
               <span class="kicker">Perfil do pet</span>
               <h1 id="profileTitle">Mel</h1>
-              <p id="profileSubtitle">Golden Retriever · 3 anos · Tutor: Ana Clara</p>
+              <p id="profileOwner">Tutor: Ana Clara · @anaclara.pet</p>
+              <p id="profileSubtitle">Golden Retriever · 3 anos · Cachorro</p>
               <p class="profile-bio" id="profileBio">Carinhosa, brincalhona e apaixonada por passeios.</p>
               <div class="profile-actions">
                 <button class="secondary-button" type="button" id="editProfileButton">Editar perfil</button>
                 <button class="secondary-button" type="button" id="shareProfile">Compartilhar</button>
+                <button class="secondary-button danger-button" type="button" id="clearLocalDataTop">Limpar dados locais</button>
               </div>
             </div>
           </div>
@@ -435,10 +437,111 @@
     </article>
   </div>
 
+  <div class="modal-backdrop" id="editProfileModal" aria-hidden="true">
+    <article class="profile-edit-card" role="dialog" aria-modal="true" aria-labelledby="editProfileTitle">
+      <button class="modal-close" type="button" data-close-profile-edit aria-label="Fechar edição de perfil">×</button>
+      <div class="auth-modal-heading">
+        <span class="kicker">Perfil HumaPet</span>
+        <h2 id="editProfileTitle">Editar perfil</h2>
+        <p>Atualize os dados do tutor e do pet principal. As alterações serão salvas no Firestore.</p>
+      </div>
+      <form class="auth-form" id="editProfileForm">
+        <div class="form-grid">
+          <label>
+            Nome do tutor
+            <input id="editTutorName" type="text" maxlength="40" required>
+          </label>
+          <label>
+            Username
+            <input id="editUsername" type="text" maxlength="32" required>
+          </label>
+        </div>
+        <div class="form-grid">
+          <label>
+            Nome do pet
+            <input id="editPetName" type="text" maxlength="32" required>
+          </label>
+          <label>
+            Avatar visual
+            <input id="editPetAvatar" type="text" maxlength="4" placeholder="🐾 ou MP">
+          </label>
+        </div>
+        <div class="form-grid">
+          <label>
+            Espécie
+            <input id="editPetSpecies" type="text" maxlength="32">
+          </label>
+          <label>
+            Raça
+            <input id="editPetBreed" type="text" maxlength="40">
+          </label>
+        </div>
+        <label>
+          Idade
+          <input id="editPetAge" type="text" maxlength="20">
+        </label>
+        <label>
+          Bio
+          <textarea id="editBio" rows="4" maxlength="160"></textarea>
+        </label>
+        <div class="form-actions">
+          <button class="secondary-button" type="button" data-close-profile-edit>Cancelar</button>
+          <button class="primary-button" type="submit" id="saveProfileButton">Salvar alterações</button>
+        </div>
+      </form>
+    </article>
+  </div>
+
   <div class="modal-backdrop" id="postModal" aria-hidden="true">
     <article class="post-modal-card" role="dialog" aria-modal="true" aria-labelledby="postModalTitle">
       <button class="modal-close" type="button" data-close-modal aria-label="Fechar post">×</button>
       <div class="modal-body" id="postModalBody"></div>
+    </article>
+  </div>
+
+  <div class="modal-backdrop" id="editPostModal" aria-hidden="true">
+    <article class="profile-edit-card" role="dialog" aria-modal="true" aria-labelledby="editPostTitle">
+      <button class="modal-close" type="button" data-close-edit-post aria-label="Fechar edição de post">×</button>
+      <div class="auth-modal-heading">
+        <span class="kicker">Publicação</span>
+        <h2 id="editPostTitle">Editar post</h2>
+        <p>Atualize o card visual da sua publicação no HumaPet Social.</p>
+      </div>
+      <form class="auth-form" id="editPostForm">
+        <label>
+          Legenda
+          <textarea id="editPostCaption" maxlength="220" rows="5" required></textarea>
+        </label>
+        <div class="form-grid">
+          <label>
+            Categoria
+            <select id="editPostCategory">
+              <option value="foto">Foto</option>
+              <option value="vídeo curto">Vídeo curto</option>
+              <option value="texto">Texto</option>
+              <option value="passeio">Passeio</option>
+              <option value="saúde">Saúde</option>
+              <option value="banho">Banho</option>
+              <option value="humor">Humor</option>
+              <option value="rotina">Rotina</option>
+              <option value="dica">Dica</option>
+              <option value="adoção">Adoção</option>
+            </select>
+          </label>
+          <label>
+            Emoji
+            <input id="editPostEmoji" type="text" maxlength="4" required>
+          </label>
+        </div>
+        <label>
+          Título visual
+          <input id="editPostVisualTitle" type="text" maxlength="48" required>
+        </label>
+        <div class="form-actions">
+          <button class="secondary-button" type="button" data-close-edit-post>Cancelar</button>
+          <button class="primary-button" type="submit" id="savePostEditButton">Salvar alterações</button>
+        </div>
+      </form>
     </article>
   </div>
 
